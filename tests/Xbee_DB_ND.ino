@@ -20,7 +20,7 @@ Hardware Hookup:
 typedef struct {
   // MY SH SL DB NI
   String param[5];
-  double db;
+  int db;
 }NODE;
 
 NODE n[N_NODES];
@@ -36,7 +36,7 @@ void setup()
 
 void loop()
 {
-  delay(10000);
+  delay(7000);
   Serial.println("Running ND");
   node_discovery();
   //Serial.println(n[0].db);
@@ -55,21 +55,31 @@ void loop()
 }
 void read_node(){
   int count = 0;
-  //Serial.println(count);
-  while(!Serial1.available()){}
   String s;
+  //Serial.println(count);
+  //while(!Serial1.available()){}
+  if (Serial1.available())   // Ok (?) received
+   { 
+    s = Serial1.readString();  //Print OK (?)
+   }
+ 
   int from = 0, to = 0;
-  s = Serial1.readString();
+  //s = Serial1.readString();
   Serial.println(s);
-  if(s[0] == 13)
+  if(s.length() < 5)
     return;
-  if(count == 0){
-    from = 3;
-    to = 3;
-  }
-  
   while(to < s.length()){
+    if(s[from] == 13) {
+      from++;
+      to = from;
+      continue;
+    }
     while(s[to++] != 13){}
+    if(s.substring(from, to-1).equals("OK")){
+      from = to;
+      to = from;
+      while(s[to++] != 13){}
+    }
     n[count].param[0] = s.substring(from, to-1);
     Serial.print("my = ");
     Serial.println(n[count].param[0]);
@@ -89,8 +99,12 @@ void read_node(){
     to = from;
     while(s[to++] != 13){}
     n[count].param[3] = s.substring(from, to-1);
-    Serial.print("db = ");
-    Serial.println(n[count].param[3]);
+    //Serial.print("db = ");
+    //Serial.println(n[count].param[3]);
+    n[count].db = (n[count].param[3].charAt(0) - (n[count].param[3].charAt(0) > 57 ? 55 : '0')) * 16;
+    n[count].db += n[count].param[3].charAt(1) - (n[count].param[3].charAt(1) > 57 ? 55 : '0');
+    Serial.print("db int = ");
+    Serial.println(n[count].db);   
     from = to;
     to = from;
     while(s[to++] != 13){}
@@ -99,10 +113,10 @@ void read_node(){
     Serial.println(n[count].param[4]);
     //Serial.println(to);
     count++;
-    from = to+1;
-    to = from;
-    Serial.print("To = ");
-    Serial.println(to);
+    Serial.print("last = ");
+    Serial.println(s.charAt(to+1));
+    to++;
+    from = to;
   }
   
   
@@ -112,9 +126,9 @@ void read_node(){
   return;
 }
 void read_intensity(){
-  delay(1200);  
+  delay(1000);  
   Serial1.print("+++"); //activate command mode
-  delay(1200); //wait guard time
+  delay(1000); //wait guard time
    if (Serial1.available())   // Ok (?) received
    { 
     Serial.println(Serial1.readString());  //Print OK (?)
@@ -130,11 +144,16 @@ void read_intensity(){
 
 void node_discovery(){
   Serial1.print("+++");
-  delay(1100);
+  delay(1010);
   Serial1.println("ATND");
-  delay(1100);
+  delay(1010);
   read_node();
-  
+  Serial1.println("ATCN");
+  delay(2100);
+  if (Serial1.available())   //response received (?)
+   { 
+    Serial.println(Serial1.readString());  //Print hexadecimal response 
+   }
   //Serial.println(n[0].param[4].toInt(), DEC);
   
 }
