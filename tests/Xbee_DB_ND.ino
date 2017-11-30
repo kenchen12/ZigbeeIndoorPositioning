@@ -19,14 +19,16 @@
 #define N_NODES 3
 #define P_23 2
 #define P_21 1
-#define P_17 0 
+#define P_17 0
 typedef struct {
   // MY SH SL DB NI
   String param[5];
   int db;
 } NODE;
-float constante[N_NODES] = {6.35, 4.67};
+float constante[N_NODES] = {12.00, 4.67};
 NODE n[N_NODES];
+double media = 0;
+int contador = 0;
 const float A = -23 ; //DB(1)
 int n_nodes;
 void setup()
@@ -64,15 +66,15 @@ void read_node() {
   }
 
 }
-void calc_distance(int _n){
+void calc_distance(int _n) {
   float c = 0;
-  for(int i = 0; i < n_nodes; i++){
-    if(n[i].param[4].equals("17")) c = constante[P_17];
-    if(n[i].param[4].equals("21")) c = constante[P_21];
-    if(n[i].param[4].equals("23")) c = constante[P_23];
+  for (int i = 0; i < n_nodes; i++) {
+    if (n[i].param[4].equals("17")) c = constante[P_17];
+    if (n[i].param[4].equals("21")) c = constante[P_21];
+    if (n[i].param[4].equals("23")) c = constante[P_23];
   }
-    
-  double d = pow(10, (n[_n].db - A)/(-10*c));
+
+  double d = pow(10, (n[_n].db - A) / (-10 * c));
   Serial.print("Distancia : ");
   Serial.println(d);
 }
@@ -83,17 +85,21 @@ void node_discovery() {
   //delay(1015);
   delay(3000);
   read_node();
-  for (int i = 0; i < n_nodes; i++)
+  for (int i = 0; i < n_nodes; i++) {
     n[i].db = -hextoi(n[i].param[3]);
-  for(int i = 0; i < n_nodes; i++){
+    media += n[i].db;
+    Serial.print("Media : ");
+    Serial.println(media / ++contador);
+  }
+  for (int i = 0; i < n_nodes; i++) {
     Serial.print(i);
     Serial.print("'s dbm : ");
     Serial.println(n[i].db);
-    float _n = (A - n[i].db)/(10* log10(1.5));
+    float _n = (A - media/contador) / (10 * log10(1.5));
     Serial.print("n : ");
     Serial.println(_n);
     calc_distance(i);
-    for(int j = 0; j < 5; j++){
+    for (int j = 0; j < 5; j++) {
       Serial.print(j);
       Serial.print(" : ");
       Serial.println(n[i].param[j]);
