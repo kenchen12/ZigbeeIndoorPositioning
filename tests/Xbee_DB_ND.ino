@@ -25,11 +25,11 @@ typedef struct {
   String param[5];
   int db;
 } NODE;
-float constante[N_NODES] = {12.00, 4.67};
+float constante[N_NODES] = {-11.25, 4.67};
 NODE n[N_NODES];
 double media = 0;
 int contador = 0;
-const float A = -23 ; //DB(1)
+const float A = 23 ; //DB(1)
 int n_nodes;
 void setup()
 {
@@ -74,7 +74,7 @@ void calc_distance(int _n) {
     if (n[i].param[4].equals("23")) c = constante[P_23];
   }
 
-  double d = pow(10, (n[_n].db - A) / (-10 * c));
+  double d = pow(10, (A -10 - n[_n].db - 10 * c * log10(2410) + 30 * c - 32.44) / (10 * c));
   Serial.print("Distancia : ");
   Serial.println(d);
 }
@@ -86,7 +86,7 @@ void node_discovery() {
   delay(3000);
   read_node();
   for (int i = 0; i < n_nodes; i++) {
-    n[i].db = -hextoi(n[i].param[3]);
+    n[i].db = hextoi(n[i].param[3]);
     media += n[i].db;
     Serial.print("Media : ");
     Serial.println(media / ++contador);
@@ -95,7 +95,7 @@ void node_discovery() {
     Serial.print(i);
     Serial.print("'s dbm : ");
     Serial.println(n[i].db);
-    float _n = (A - media/contador) / (10 * log10(1.5));
+    double _n = (A - media/contador -10 -32.44) / (10 * log10(3) + 10 * log10(2410) -30);
     Serial.print("n : ");
     Serial.println(_n);
     calc_distance(i);
